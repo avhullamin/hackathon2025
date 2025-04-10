@@ -85,15 +85,49 @@ matches = []
 for other_user in all_users:
     score = calculate_match_score(current_user, other_user)
     if score >= 70:  # Threshold
-        matches.append((other_user[1], score))
+        matches.append((other_user[1], score, other_user[2], other_user[3], other_user[4], other_user[9]))  # Name, score, branch, semester, gpa, preferences
 
 # Sort matches by score
 matches.sort(key=lambda x: x[1], reverse=True)
 
-# Display matches
-st.subheader(f"{selected_user}'s Matches")
+# Swipe UI using session state
 if matches:
-    for match_name, score in matches:
-        st.write(f"- {match_name} (Score: {score}%)")
+    # Initialize session state
+    if 'match_index' not in st.session_state:
+        st.session_state.match_index = 0
+    if 'liked' not in st.session_state:
+        st.session_state.liked = []
+
+    # Display current match
+    current_match = matches[st.session_state.match_index]
+    st.subheader("Swipe Time!")
+    st.write(f"**Name**: {current_match[0]}")
+    st.write(f"Branch: {current_match[2]}")
+    st.write(f"Semester: {current_match[3]}")
+    st.write(f"GPA: {current_match[4]}")
+    st.write(f"Preferences: {current_match[5]}")
+    st.write(f"Match Score: {current_match[1]}%")
+
+    # Swipe buttons
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Nope 👎"):
+            if st.session_state.match_index < len(matches) - 1:
+                st.session_state.match_index += 1
+            else:
+                st.write("No more matches!")
+    with col2:
+        if st.button("Like 👍"):
+            st.session_state.liked.append(current_match[0])
+            if st.session_state.match_index < len(matches) - 1:
+                st.session_state.match_index += 1
+            else:
+                st.write("No more matches!")
+
+    # Show liked matches
+    if st.session_state.liked:
+        st.subheader("Your Likes")
+        for liked_name in st.session_state.liked:
+            st.write(f"- {liked_name}")
 else:
     st.write("No matches found!")
